@@ -111,9 +111,9 @@ class Game():
         global f
         for i in range(5):
             for j in range(5):
-                f.write(self.arr[i][j], end="\t")
+                f.write(self.arr[i][j], end="/t")
             f.write()
-        f.write("acc now is:", self.acc, end="\n\n")
+        f.write("acc now is:", self.acc, end="/n/n")
 
 
 def main():
@@ -126,7 +126,7 @@ def main():
         index = randint(1, len(ARR) - 1)
         card = ARR[index]
         ARR.pop(index)
-        print("Card is:", card, end="\n\n")
+        print("Card is:", card, end="/n/n")
         Player1.print_table()
         fl = False
         while fl is False:

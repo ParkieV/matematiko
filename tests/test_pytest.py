@@ -1,5 +1,5 @@
 import sys
-sys.path.insert(0, "C:\projects\matematiko")
+sys.path.insert(0, "C:/projects/matematiko")
 from Game import Game
 
 

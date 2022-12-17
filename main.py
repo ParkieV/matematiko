@@ -1,10 +1,12 @@
+import py
 import pygame
 import sys
+from random import randint
 
 screen = ''
 SIZE = WIDTH, HEIGHT = 800, 640
 WHITE = 255, 255, 255
-
+TABLE_PLAYER_COORDS = [[(i, i + 70), (j, j + 70)] for j in range(100, 450, 70) for i in range(200, 550, 70)]
 
 class Table(pygame.Surface):
     global screen
@@ -109,8 +111,25 @@ class Rules(pygame.Surface):
         screen.blit(button1, self.posbutton1)
         screen.blit(button2, self.posbutton2)
 
+    def calls(self):
+        while True:
+            for event in pygame.event.get():
+                if event == pygame.QUIT:
+                    sys.exit()
+                elif pygame.key.get_pressed()[pygame.K_ESCAPE]:
+                    return True
+                elif event.type == pygame.MOUSEBUTTONDOWN:
+                    x, y = event.pos
+                    if 50 <= x <= 300 and 500 <= y <= 580:
+                        Rules2().initialization()
+                        Rules2().calls()
+                        self.initialization_objects()
+                    elif 500 <= x <= 750 and 500 <= y <= 580:
+                        return True
+            pygame.display.flip()
 
-class TableWidget(pygame.Surface):
+
+class Rules2(pygame.Surface):
     global screen, SIZE
 
     def __init__(self):
@@ -243,17 +262,38 @@ class TableWidget(pygame.Surface):
         screen.blit(text39, self.postext39)
         screen.blit(button, self.posbutton)
 
+    def calls(self):
+        while True:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    sys.exit()
+                elif event.type == pygame.MOUSEBUTTONDOWN:
+                    x, y = event.pos
+                    if 280 <= x <= 530 and 510 <= y <= 590:
+                        return True
+                elif pygame.key.get_pressed()[pygame.K_ESCAPE]:
+                    return True
+            pygame.display.flip()
+
 
 class Logic():
     def __init__(self):
         self.acc = 0
-        self.arr = [[0, 0, 0, 0, 0] for x in range(5)]
+        self.arr =[[0, 0, 0, 0, 0] for x in range(5)]
+        self.cards = [0]
+        for i in range(1, 26):
+            for j in range(4):
+                self.cards.append(i)
 
     def add(self, x, y, num):
-        self.arr[x][y] = num
-        self.count()
+        if self.arr[y][x] == 0:
+            self.arr[y][x] = int(num)
+            self.count()
+            print(self.arr)
+            return True
+        return False
 
-    def count_arr(self, arr):
+    def count_arr(self, arr, fl=False):
         tempacc = 0
         nums = dict()
         for j in arr:
@@ -263,44 +303,69 @@ class Logic():
                 else:
                     nums[j] += 1
         l = sorted(arr)[0]
-        if sorted(arr) == [1, 10, 11, 12, 13]:
+        if sorted(arr) == [1,10,11,12,13]:
             tempacc += 150
-        elif sorted(arr) == [l, l + 1, l + 2, l + 3, l + 4]:
+        elif sorted(arr) == [l, l + 1, l + 2, l + 3, l + 4] and l != 0:
             tempacc += 50
         else:
-            for j in nums:
-                if nums[j] == 4:
-                    if j == 1:
+            if len(list(nums.keys())) == 1:
+                if nums[list(nums.keys())[0]] == 4:
+                    if list(nums.keys())[0] == 1:
                         tempacc += 200
                     else:
                         tempacc += 160
-                elif nums[j] == 3:
-                    if len(nums.keys()) >= 2:
-                        if nums[j + 1] == 2:
-                            if sorted(arr) == [1, 1, 1, 13, 13]:
-                                tempacc += 100
-                            else:
-                                tempacc += 80
-                        else:
-                            tempacc += 40
+                elif nums[list(nums.keys())[0]] == 3:
+                    tempacc += 40
+                elif nums[list(nums.keys())[0]] == 2:
+                    tempacc += 10
+            elif len(list(nums.keys())) == 2:
+                if sorted(list(nums.keys())) == [1, 13]:
+                    if nums[1] == 3 and nums[13] == 2:
+                        tempacc += 100
                     else:
-                        tempacc += 40
-                elif nums[j] == 2:
-                    if len(nums.keys()) >= 2:
-                        if nums[j + 1] == 3:
-                            if sorted(arr) == [1, 1, 1, 13, 13]:
-                                tempacc += 100
-                                tempacc -= 40
-                            else:
-                                tempacc += 80
-                                tempacc -= 40
-                            tempacc += 40
-                        elif nums[j + 1] == 2 or nums[j + 2] == 2:
-                            tempacc += 20
-                        else:
+                        if nums[1] == 3:
+                            tempacc += 100
+                        elif nums[1] == 4:
+                            tempacc += 200
+                        elif nums[1] == 2:
                             tempacc += 10
-                    else:
+                        if nums[13] == 4:
+                            tempacc += 160
+                        elif nums[13] == 3:
+                            tempacc += 40
+                        elif nums[13] == 2:
+                            tempacc += 10
+                elif sorted(list(nums.keys()))[0] == 1 and nums[1] == 4:
+                    tempacc += 200
+                else:
+                    flpair = False
+                    for j in nums:
+                        if nums[j] == 2:
+                            tempacc += 10
+                            if flpair:
+                                tempacc += 30
+                                break
+                            flpair = True
+                        elif nums[j] == 3:
+                            tempacc += 40
+                            if flpair:
+                                tempacc += 30
+                                break
+                            flpair = True
+            elif len(list(nums.keys())) == 3:
+                for j in nums:
+                    if nums[j] == 2:
                         tempacc += 10
+                    elif nums[j] == 3:
+                        tempacc += 40
+            else:
+                for j in nums:
+                    if nums[j] == 2:
+                        tempacc += 10
+                        break
+        if fl and tempacc != 0:
+            return tempacc + 10
+        else:
             return tempacc
 
     def count(self):
@@ -308,28 +373,76 @@ class Logic():
         tempacc = 0
         for i in self.arr:
             self.acc += self.count_arr(i)
+        for i in range(len(self.arr)):
+            arr_height = []
+            for j in range(5):
+                arr_height.append(self.arr[j][i])
+            self.acc += self.count_arr(arr_height)
         temparr, temparr2 = [], []
         for i in range(5):
             temparr.append(self.arr[i][i])
-            temparr2.append(self.arr[4 - i][4 - i])
-        self.acc += self.count_arr(temparr)
-        self.acc += self.count_arr(temparr2)
+            temparr2.append(self.arr[4 - i][i])
+        self.acc += self.count_arr(temparr, True)
+        self.acc += self.count_arr(temparr2, True)
+        print(self.acc)
         temparr.clear()
+
+    def get_random_card(self):
+        index = randint(1, len(self.cards) - 1)
+        card = self.cards[index]
+        self.cards.pop(index)
+        return str(card)
 
 
 class Field(pygame.Surface):
     def __init__(self):
+        global TABLE_PLAYER_COORDS, screen
         self.logic = Logic()
-        self.table = Table(100, 100, 5, 5, 70, 70)
+        self.table = Table(200, 100, 5, 5, 70, 70)
+
+        self.f1 = pygame.font.Font('C:/projects/matematiko/src/fonts/Roboto-Black.ttf', 48)
+        self.card =self.logic.get_random_card()
+        self.postextcard = 250, 520
+        self.poscard = self.postextcard[0] + 280, self.postextcard[1]
+        self.f2 = pygame.font.Font('C:/projects/matematiko/src/fonts/Roboto-Black.ttf', 16)
+        self.scoretextpos = 20, 100
+        self.scorepos = self.scoretextpos[0] + 70, self.scoretextpos[1]
+        self.fcard = pygame.font.Font('C:/projects/matematiko/src/fonts/Roboto-Black.ttf', 40)
+
+    def print_arr(self):
+        i = 0
+        while i < 25:
+            if self.logic.arr[i//5][i%5] != 0:
+                text = self.fcard.render(str(self.logic.arr[i//5][i%5]), True, (0, 0, 0))
+                if self.logic.arr[i//5][i%5] // 10 == 0:
+                    numcoord = TABLE_PLAYER_COORDS[i][0][0] + 20, TABLE_PLAYER_COORDS[i][1][0] + 12
+                elif self.logic.arr[i//5][i%5] // 10 == 1:
+                    numcoord = TABLE_PLAYER_COORDS[i][0][0] + 11, TABLE_PLAYER_COORDS[i][1][0] + 12
+                else:
+                    numcoord = TABLE_PLAYER_COORDS[i][0][0] + 13, TABLE_PLAYER_COORDS[i][1][0] + 12
+                screen.blit(text, numcoord)
+            i += 1
 
     def initialization(self):
+        screen.fill(WHITE)
+        acc = str(self.logic.acc)
         self.table.initialization()
+        self.print_arr()
+        textcard = self.f1.render('Ваша карта:', True, (0, 0, 0))
+        cardrender = self.f1.render(self.card, True, (0, 0, 0))
+        textscore = self.f2.render('Игрок 1:', True, (0,0,0))
+        scorerender = self.f2.render(acc, True, (0, 0, 0))
+        
+        screen.blit(textcard, self.postextcard)
+        screen.blit(cardrender, self.poscard)
+        screen.blit(textscore, self.scoretextpos)
+        screen.blit(scorerender, self.scorepos)
+
 
 class Game():
-    def __init__(self, numplayers=2):
+    def __init__(self, numplayers=1):
         self.numplayers = numplayers
-        self.index = 1
-        self.players = [0]
+        self.players = []
 
     def initialization_players(self):
         for i in range(self.numplayers):
@@ -340,51 +453,105 @@ class Game():
         global screen, WHITE
         screen.fill(WHITE)
         self.initialization_players()
-        self.players[self.index].initialization()
+    
+    def game_loop(self):
+        global TABLE_PLAYER_COORDS
+        self.initialization()
+        for i in range(25):
+            for player in self.players:
+                flagloop = True
+                while flagloop:
+                    for event in pygame.event.get():
+                        if pygame.key.get_pressed()[pygame.K_ESCAPE]:
+                            return 0
+                        elif event.type == pygame.MOUSEBUTTONDOWN:
+                            x, y = event.pos
+                            for i in TABLE_PLAYER_COORDS:
+                                if i[0][0] <= x <= i[0][1] and i[1][0] <= y <= i[1][1]:
+                                    if player.logic.add((x - 200) // 70, (y - 100) // 70, player.card):
+                                        player.card = player.logic.get_random_card()
+                                        flagloop = False
+                                        break
+                    player.initialization()
+                    pygame.display.flip()
+        print(f'acc: {self.players[0].logic.acc}')
 
 
+class MenuWidget():
+    def __init__(self, prechooseTexts=[""], var=0):
+        self.f1 = pygame.font.Font('C:/projects/matematiko/src/fonts/Roboto-Black.ttf', 16)
+        self.bg = pygame.image.load('C:/projects/matematiko/src/img/bg.png')
+        self.ChooseWidget = Choose
+    
+    def initialization(self):
+        global screen
+        screen.fill(WHITE)
+        screen.blit(self.bg)
+
+        
+
+
+class Choose(pygame.Surface):
+    def __init__(self):
+        self.f1 = pygame.font.Font('C:/projects/matematiko/src/fonts/Roboto-Black.ttf', 48)
+        self.bg = pygame.image.load("src/img/bg.png")
+        self.text = 100, 100
+        self.windowcolor = (230, 230, 230)
+        self.windowcoord = [400, 300, 700, 450]
+    
+    def initialization(self):
+        global WHITE
+        screen.fill(WHITE)
+        screen.blit(self.bg, (0,0))
+        pygame.draw.rect(screen, self.windowcolor, self.windowcoord)
+
+
+# start programm
 def main():
     pygame.init()
-
     global screen, SIZE
     screen = pygame.display.set_mode(SIZE)
     screen.fill(WHITE)
-    numsurf = 0
+    flquit = False
+    RulesWidget = Rules()
+    MainWidget = MainMenu()
+    MainWidget.initialization_objects()
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 sys.exit()
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 x, y = event.pos
-                if numsurf == 0:
-                    if 275 <= x <= 525 and 455 <= y <= 535:
-                        sys.exit()
-                    elif 275 <= x <= 525 and 335 <= y <= 415:
-                        numsurf = 2
-                    elif 275 <= x <= 525 and 215 <= y <= 295:
-                        for alp in range(150, 0, -8):
-                            screen.set_alpha(alp)
-                        numsurf = 4
-                elif numsurf == 2:
-                    if 500 <= x <= 750 and 500 <= y <= 580:
-                        numsurf = 0
-                    elif 50 <= x <= 300 and 500 <= y <= 580:
-                        numsurf = 3
-                elif numsurf == 3:
-                    if 280 <= x <= 530 and 510 <= y <= 590:
-                        numsurf = 2
-            else:
-                if numsurf == 0:
-                    MainMenu().initialization_objects()
-                elif numsurf == 2:
-                    Rules().initialization_objects()
-                elif numsurf == 3:
-                    TableWidget().initialization()
-                elif numsurf == 4:
-                    GameWidget = Game()
-                    GameWidget.initialization()
+                if 275 <= x <= 525 and 455 <= y <= 535:
+                    sys.exit()
+                elif 275 <= x <= 525 and 335 <= y <= 415:
+                    RulesWidget.initialization_objects()
+                    RulesWidget.calls()
+                    MainWidget.initialization_objects()
+                elif 275 <= x <= 525 and 215 <= y <= 295:
+                    ChooseWidget.initialization()
+                    MainWidget.initialization_objects()
         pygame.display.flip()
 
+def testt():
+    pygame.init()
+    global screen, SIZE
+    screen = pygame.display.set_mode(SIZE)
+    GameWidget = Game()
+    GameWidget.initialization()
+    arr = []
+    for i in range(5):
+        arr.append([])
+        for j in range(1, 6):
+            arr[i].append(i*5+j)
+    print(arr)
+    GameWidget.players[0].logic.arr = arr
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                sys.exit()
+        GameWidget.players[0].initialization()
+        pygame.display.flip()
 
 if __name__ == "__main__":
     main()
